@@ -20,8 +20,25 @@ from taiga.projects.notifications.mixins import WatchedResourceSerializer
 from taiga.projects.tagging.serializers import TaggedInProjectResourceSerializer
 from taiga.projects.votes.mixins.serializers import VoteResourceSerializerMixin
 from taiga.projects.history.mixins import TotalCommentsSerializerMixin
+from .models import HR
 
-
+class HRSerializer(serializers.ModelSerializer):
+    get_year_per_title = serializers.SerializerMethodField('get_year_title')
+    class Meta:
+        model=HR
+        fields=(
+            "id",
+            "filename",
+            "created_date",
+            "finish_date",
+            "hr_name",
+            "file_url",
+            "project",
+            "get_year_per_title"
+        )
+    def get_year_title(self, obj):
+        return obj.get_year_per_title
+        
 class OriginItemSerializer(serializers.LightSerializer):
     id = Field()
     ref = Field()

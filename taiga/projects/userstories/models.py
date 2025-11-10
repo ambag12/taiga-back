@@ -41,7 +41,7 @@ class RolePoints(models.Model):
     )
     points = models.ForeignKey(
         "projects.Points",
-        null=True,
+        null=False,
         blank=False,
         related_name="role_points",
         verbose_name=_("points"),
@@ -61,7 +61,26 @@ class RolePoints(models.Model):
     def project(self):
         return self.user_story.project
 
-
+class HR(models.Model):
+    filename=models.TextField(blank=True,default=None)
+    created_date= models.DateTimeField(null=False, blank=False,
+                                        verbose_name=_("created date"),
+                                        default=timezone.now)
+    finish_date = models.DateTimeField(null=True, blank=True,
+                                       verbose_name=_("finish date"))
+    hr_name=models.TextField(blank=True,default=None)
+    file_url=models.URLField(blank=True,default=None)
+    project = models.ForeignKey(
+        "projects.Project",
+        null=False,
+        blank=False,
+        related_name="hr_docs",
+        verbose_name=_("project"),
+        on_delete=models.CASCADE,
+    )
+    @property
+    def get_year_per_title(self):
+        return f"{self.created_date.year} - {self.finish_date.year}"
 class UserStory(OCCModelMixin, WatchedModelMixin, BlockedMixin, TaggedMixin, DueDateMixin, models.Model):
     NEW_BACKLOG_ORDER = timestamp_mics
     NEW_SPRINT_ORDER = timestamp_mics

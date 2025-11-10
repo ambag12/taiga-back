@@ -4,11 +4,13 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 # Copyright (c) 2021-present Kaleidos INC
+from cloudinary.uploader import upload as cloudinary_upload
 
 from django.apps import apps
+# from rest_framework.decorators import api_view,permission_classes
 from django.db import transaction
 from django.db.models import Max
-
+# from rest_framework.response import Response
 from django.utils.translation import gettext as _
 from django.http import HttpResponse
 
@@ -462,7 +464,36 @@ class UserStoryViewSet(AssignedUsersSignalMixin, OCCResourceMixin,
                                                                           before_userstory=before_userstory,
                                                                           bulk_userstories=data["bulk_userstories"])
         return response.Ok(ret)
-
+    
+    @list_route(methods=["POST"])
+    def post_hr_func(self, request, *args, **kwargs):
+        # Enforces the viewset's default permission_classes automatically
+        try:
+            file = request.FILES.get('file') 
+            body = request.DATA.dict()
+            project_name=Project.objects.get(id=body['project'])
+            if file:
+                upload_result = cloudinary_upload(file,folder=f"hr_documents/{project_name.name}/{body['hr_name']}",resource_type="raw")
+                body["file_url"] = upload_result.get("secure_url")
+            create_record=serializers.HRSerializer(data=body)
+            if create_record.is_valid():
+                create_record.save()
+                return response.Ok({"message": "HR function executed", "data": create_record.data})
+            return response.BadRequest({"error": create_record.errors})
+        except Exception as e:
+            return response.BadRequest({"error": str(e)})
+    @list_route(methods=["GET"])
+    def get_hr_func(self, request, *args, **kwargs):
+        try:
+            hr_id = request.GET.get('hr_id')
+            if hr_id:
+                get_record=models.HR.objects.filter(id=hr_id)
+            else:
+                get_record=models.HR.objects.all()
+            get_serializer=serializers.HRSerializer(get_record,many=True)
+            return response.Ok({"message": "HR GET function executed", "data": get_serializer.data})
+        except Exception as e:
+            return response.BadRequest({"error": str(e)})
     @list_route(methods=["POST"])
     def bulk_update_kanban_order(self, request, **kwargs):
         # Validate data

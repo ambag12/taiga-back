@@ -50,6 +50,37 @@ def get_project_logo_file_path(instance, filename):
     return get_file_path(instance, filename, "project")
 
 
+
+class ChatRoom(models.Model):
+    project=models.OneToOneField(
+        "Project",
+        null=True,
+        blank=True,
+        related_name="chatroom_project",
+        verbose_name=_("chatroom_project"),
+        on_delete=models.CASCADE,
+    )
+    role = models.ForeignKey(
+        "users.Role",
+        null=True,
+        blank=True,
+        related_name="chatroom_role_points",
+        verbose_name=_("chatroom_role"),
+        on_delete=models.CASCADE,
+    )
+    reply_message=models.OneToOneField("self",null=True,
+        blank=True,
+        related_name="chatroom_reply_message",
+        verbose_name=_("chatroom_reply_message"),
+        on_delete=models.CASCADE,)
+    content=models.TextField(blank=True)
+    mentioned_users = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)   
+    updated_at = models.DateTimeField(auto_now=True) 
+    
+    def __str__(self):
+        return f"{self.project} - {self.role}"
+
 class Membership(models.Model):
     # This model stores all project memberships. Also
     # stores invitations to memberships that does not have
